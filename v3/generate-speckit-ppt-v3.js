@@ -3,8 +3,8 @@ const pptxgen = require('pptxgenjs');
 const pptx = new pptxgen();
 pptx.author = 'GitHub Copilot';
 pptx.company = 'Wanke';
-pptx.subject = 'Spec Kit × GitHub Platform 深度集成方案';
-pptx.title = 'Spec Kit × GitHub Platform 深度集成方案（双模式）';
+pptx.subject = 'Spec-Driven Development × GitHub Platform 深度集成方案';
+pptx.title = 'Spec-Driven Development × GitHub Platform 深度集成方案（v3）';
 pptx.lang = 'zh-CN';
 pptx.defineLayout({ name: 'WIDE', width: 13.333, height: 7.5 });
 pptx.layout = 'WIDE';
@@ -30,9 +30,9 @@ const C = {
 };
 
 // ── Fonts ──────────────────────────────────────────────────────
-const TITLE_FONT = 'PingFang SC';
-const BODY_FONT  = 'PingFang SC';
-const MONO_FONT  = 'Menlo';
+const TITLE_FONT = 'Microsoft YaHei';
+const BODY_FONT  = 'Microsoft YaHei';
+const MONO_FONT  = 'Consolas';
 
 // ── Slide margins ──────────────────────────────────────────────
 const ML = 0.7;   // left margin
@@ -74,7 +74,7 @@ function addHeader(slide, title, subtitle, dark) {
 
 // ── Helper: footer ─────────────────────────────────────────────
 function addFooter(slide, page, tag, dark) {
-  tag = tag || 'Spec Kit × GitHub Platform';
+  tag = tag || 'SDD × GitHub Platform';
   const footerColor = dark ? 'B0C9DA' : C.slate;
   slide.addText(tag, {
     x: ML, y: 7.08, w: 4, h: 0.2,
@@ -123,7 +123,7 @@ function addCard(slide, cfg) {
   if (cfg.title) {
     slide.addText(cfg.title, {
       x: cfg.x + padL, y: cfg.y + 0.14, w: textW, h: 0.3,
-      fontFace: TITLE_FONT, fontSize: 14, bold: true,
+      fontFace: TITLE_FONT, fontSize: 13, bold: true,
       color: C.ink, margin: 0, valign: 'top',
     });
   }
@@ -132,8 +132,8 @@ function addCard(slide, cfg) {
     const bodyH = cfg.h - (cfg.title ? 0.6 : 0.28);
     slide.addText(cfg.body, {
       x: cfg.x + padL, y: bodyY, w: textW, h: bodyH,
-      fontFace: BODY_FONT, fontSize: 11, color: C.slate,
-      margin: 0, valign: 'top', lineSpacingMultiple: 1.2,
+      fontFace: BODY_FONT, fontSize: 10.2, color: C.slate,
+      margin: 0, valign: 'top', lineSpacingMultiple: 1.16,
     });
   }
 }
@@ -148,35 +148,40 @@ function addCardWithBullets(slide, cfg) {
   if (cfg.title) {
     slide.addText(cfg.title, {
       x: cfg.x + padL, y: nextY, w: textW, h: 0.28,
-      fontFace: TITLE_FONT, fontSize: 13, bold: true,
+      fontFace: TITLE_FONT, fontSize: 12, bold: true,
       color: C.ink, margin: 0,
     });
     nextY += 0.34;
   }
   // Description — calculate height based on line count
   if (cfg.desc) {
-    const lineCount = cfg.desc.split('\n').length;
     const charsPerLine = Math.floor(textW * 7); // rough estimate for Chinese chars
     const wrapLines = cfg.desc.split('\n').reduce((acc, line) => acc + Math.max(1, Math.ceil(line.length / charsPerLine)), 0);
-    const descH = Math.max(0.4, wrapLines * 0.22);
+    const rawDescH = Math.max(0.32, wrapLines * 0.2);
+    const minBulletH = cfg.bullets && cfg.bullets.length > 0
+      ? Math.min(1.2, cfg.bullets.length * 0.18 + 0.24)
+      : 0;
+    const maxDescH = Math.max(0.32, cfg.y + cfg.h - nextY - minBulletH - 0.18);
+    const descH = Math.min(rawDescH, maxDescH);
     slide.addText(cfg.desc, {
       x: cfg.x + padL, y: nextY, w: textW, h: descH,
-      fontFace: BODY_FONT, fontSize: 10.5, color: C.slate,
-      margin: 0, valign: 'top', lineSpacingMultiple: 1.25,
+      fontFace: BODY_FONT, fontSize: 9.8, color: C.slate,
+      margin: 0, valign: 'top', lineSpacingMultiple: 1.18,
     });
     nextY += descH + 0.08;
   }
   // Bullets
   if (cfg.bullets && cfg.bullets.length > 0) {
-    const bulletH = cfg.y + cfg.h - nextY - 0.14;
+    const bulletH = Math.max(0.32, cfg.y + cfg.h - nextY - 0.14);
+    const bulletFont = bulletH < 0.7 ? 9 : 9.6;
     const runs = cfg.bullets.map((b, i) => ({
       text: b,
       options: { bullet: true, breakLine: i < cfg.bullets.length - 1 },
     }));
     slide.addText(runs, {
       x: cfg.x + padL, y: nextY, w: textW, h: bulletH,
-      fontFace: BODY_FONT, fontSize: 10.5, color: C.ink,
-      margin: 0, valign: 'top', paraSpaceAfter: 4,
+      fontFace: BODY_FONT, fontSize: bulletFont, color: C.ink,
+      margin: 0, valign: 'top', paraSpaceAfter: 2,
     });
   }
 }
@@ -193,7 +198,7 @@ function addCardWithBullets(slide, cfg) {
   });
 
   // Title block
-  s.addText('Spec Kit × GitHub Platform', {
+  s.addText('Spec-Driven Development × GitHub Platform', {
     x: ML, y: 1.6, w: 6, h: 0.8,
     fontFace: TITLE_FONT, fontSize: 36, bold: true, color: C.white, margin: 0,
   });
@@ -209,7 +214,7 @@ function addCardWithBullets(slide, cfg) {
   // Right info cards
   const stats = [
     { label: '双模式执行', value: '本地 IDE CLI + 云端 Custom Agent', color: C.teal },
-    { label: '6 个 Agent', value: '覆盖 SDD 全部关键阶段', color: C.coral },
+    { label: 'SDD Agent 体系', value: '按企业场景灵活扩展，不固化数量', color: C.coral },
     { label: '统一产出层', value: 'Issues / Projects / Milestones / PRs', color: C.aqua },
   ];
   stats.forEach((st, i) => {
@@ -233,8 +238,8 @@ function addCardWithBullets(slide, cfg) {
   });
 
   // Bottom meta
-  addPill(s, 'Draft v1.0', ML, 5.8, C.coral, C.white, 1.1);
-  s.addText('2026-03-10  ·  战略方案汇报', {
+  addPill(s, 'v3.0', ML, 5.8, C.coral, C.white, 0.9);
+  s.addText('2026-03-15  ·  战略方案汇报', {
     x: ML + 1.25, y: 5.8, w: 3, h: 0.28,
     fontFace: BODY_FONT, fontSize: 10, color: 'B0C4DE', margin: 0, valign: 'middle',
   });
@@ -260,8 +265,8 @@ function addCardWithBullets(slide, cfg) {
   addCardWithBullets(s, {
     x: 4.65, y: 1.7, w: 3.75, h: 3.2, band: C.teal, fill: C.white,
     title: '方案目标',
-    desc: '把 Spec Kit 规范化产物与 GitHub Platform 协作对象打通，形成从需求到交付的闭环。',
-    bullets: ['统一 spec / plan / tasks / PR', '支持本地与云端两种执行方式', '让 Coding Agent 进入交付流程'],
+    desc: '以 SDD 规范驱动开发为核心，将需求、方案、任务与交付统一接入 GitHub 协作对象。',
+    bullets: ['统一 prd / plan / tasks / testplan / PR', '支持本地与云端两种执行方式', '让 Coding Agent 进入交付流程'],
   });
   addCardWithBullets(s, {
     x: 8.6, y: 1.7, w: 3.95, h: 3.2, band: C.aqua, fill: C.white,
@@ -274,7 +279,7 @@ function addCardWithBullets(slide, cfg) {
   addCard(s, {
     x: ML, y: 5.2, w: CONTENT_W, h: 0.95, band: C.navy, fill: C.lightNavy,
     title: '核心判断',
-    body: '不是再引入一个工具，而是把 Spec Kit 作为上游"规范生成器"，把 GitHub 作为下游"统一执行与协作平台"。',
+    body: '不是再引入一个工具，而是以 SDD 方法论统一研发链路；Spec Kit 是其中关键最佳实践套件之一。',
   });
 
   addFooter(s, 2);
@@ -313,7 +318,7 @@ function addCardWithBullets(slide, cfg) {
   // Layer 3: Three paths
   const pathW = (CONTENT_W - 0.5) / 3;
   const paths = [
-    { title: '路径 A · IDE CLI', body: '/speckit.* 命令\n生成 specs/ 文件产物\n同步到 GitHub', color: C.teal, fill: C.lightTeal },
+    { title: '路径 A · IDE CLI', body: 'SDD 规范命令\n生成 specs/ 文件产物\n同步到 GitHub', color: C.teal, fill: C.lightTeal },
     { title: '路径 B · Custom Agent', body: 'GitHub.com Agent Tab\n直接生成 spec / issue / PR\n无需本地环境', color: C.coral, fill: C.lightCoral },
     { title: '路径 C · Hybrid', body: 'A 生成规范产物\nB 执行拆解与实现\n推荐落地方式', color: C.aqua, fill: C.lightAqua },
   ];
@@ -346,7 +351,7 @@ function addCardWithBullets(slide, cfg) {
   addCardWithBullets(s, {
     x: ML, y: 1.7, w: colW, h: 4.85, band: C.teal, fill: C.lightTeal,
     title: '路径 A · IDE CLI',
-    desc: '适合架构师与开发人员在本地反复推演。通过 /speckit.* 命令生成规范产物，再同步到 GitHub。',
+    desc: '适合架构师与开发人员在本地反复推演。通过 SDD 规范命令生成产物，再同步到 GitHub。',
     bullets: ['本地可控，适合深度设计', '依赖 CLI 与扩展能力', '更适合生成长期维护文档', '支持离线场景'],
   });
 
@@ -381,13 +386,15 @@ function addCardWithBullets(slide, cfg) {
     { phase: 'Clarify',      role: 'PM/架构', mode: 'B', color: C.coral },
     { phase: 'Plan',         role: '架构师', mode: 'A/B', color: C.aqua },
     { phase: 'Tasks',        role: 'PMO/架构', mode: 'B', color: C.coral },
+    { phase: 'Testplan',     role: 'QA', mode: 'B', color: C.coral },
     { phase: 'Implement',    role: '开发+AI', mode: 'B', color: C.coral },
+    { phase: 'Review',       role: '全员', mode: 'B', color: C.coral },
     { phase: 'Verify',       role: '全员', mode: 'B', color: C.coral },
   ];
 
-  // Use a table-like layout for 7 stages — 2 rows
-  const gap = 0.15;
-  const cardW = (CONTENT_W - 6 * gap) / 7;
+  // Use a table-like layout for stage cards
+  const gap = 0.1;
+  const cardW = (CONTENT_W - (stages.length - 1) * gap) / stages.length;
 
   stages.forEach((st, i) => {
     const cx = ML + i * (cardW + gap);
@@ -407,13 +414,13 @@ function addCardWithBullets(slide, cfg) {
     // Phase name
     s.addText(st.phase, {
       x: cx, y: 2.05, w: cardW, h: 0.4,
-      fontFace: TITLE_FONT, fontSize: 11, bold: true, color: C.ink,
+      fontFace: TITLE_FONT, fontSize: 9, bold: true, color: C.ink,
       align: 'center', valign: 'middle', margin: 0,
     });
     // Role
     s.addText(st.role, {
       x: cx + 0.05, y: 2.65, w: cardW - 0.1, h: 0.65,
-      fontFace: BODY_FONT, fontSize: 9.5, color: C.slate,
+      fontFace: BODY_FONT, fontSize: 8, color: C.slate,
       align: 'center', valign: 'top', margin: 0,
     });
     // Mode pill
@@ -438,7 +445,7 @@ function addCardWithBullets(slide, cfg) {
   addCard(s, {
     x: ML, y: 5.35, w: CONTENT_W, h: 0.9, band: C.navy, fill: C.lightNavy,
     title: '推荐原因',
-    body: '把"高治理、高结构化"的活动前置到 Spec / Plan，把"高协作、高并行"的活动后置到 Issue / Task / PR。',
+    body: '把"高治理、高结构化"活动前置到 prd/plan，把"高协作、高并行"活动后置到 issue/task/pr。',
   });
 
   addFooter(s, 5);
@@ -452,19 +459,19 @@ function addCardWithBullets(slide, cfg) {
   addHeader(s, '团队角色与职责分工', '用角色定义保障方案可落地，而不是只有工具没有责任边界', false);
   addPill(s, 'Team Model', 10.8, 0.46, C.teal, C.white, 1.5);
 
-  // 4 role cards - 2 rows × 2 cols for breathing room
-  const cardW2 = (CONTENT_W - 0.3) / 2;
+  const colW = (CONTENT_W - 0.5) / 3;
 
   const roles = [
-    { x: ML, y: 1.7, color: C.coral, title: '产品经理（PM）', desc: '需求定义与验收守门人', bullets: ['需求定义 → speckit-specify Agent', '需求评审 → Review spec PR', '需求澄清 → 回复 clarification Issues', '优先级排序 → Project Board 管理', '验收确认 → 对照标准验收 PR'] },
-    { x: ML + cardW2 + 0.3, y: 1.7, color: C.teal, title: '项目经理（PMO）', desc: '进度管控与资源协调', bullets: ['流程编排 → 推动各阶段 PR Review', '进度追踪 → Project Board 监控', 'Milestone 管理 → 关联版本与截止日', '资源调度 → assign Copilot / 开发者', '风险管理 → 识别 blocked 与滞留'] },
-    { x: ML, y: 4.4, color: C.aqua, title: '架构师（Architect）', desc: '技术决策与质量保障', bullets: ['项目原则 → constitution.md 制定', '技术方案 → plan.md 设计', '数据建模 → data-model / contracts', '架构评审 → 关键 PR Review', 'Copilot 指导 → copilot-instructions.md'] },
-    { x: ML + cardW2 + 0.3, y: 4.4, color: C.navy, title: '开发人员（Developer）', desc: '代码实现与质量防线', bullets: ['任务实现 → 按 Task Issue 编码', 'AI 辅助 → speckit-implement Agent', '测试编写 → 围绕验收标准', '代码审查 → Review AI 生成的 PR', '需求反馈 → 创建 clarification Issue'] },
+    { x: ML, y: 1.7, w: colW, color: C.coral, title: '产品经理（PM）', desc: '需求定义与验收守门人', bullets: ['需求定义 → specify/prd Agent', '需求澄清 → clarify Agent', '需求评审 → Review PRD/Spec PR', '优先级排序 → Project Board 管理'] },
+    { x: ML + colW + 0.25, y: 1.7, w: colW, color: C.teal, title: '项目经理（PMO）', desc: '进度管控与资源协调', bullets: ['流程编排 → 推动各阶段 Review', '进度追踪 → Project Board 监控', '里程碑管理 → 关联版本和截止日', '资源调度 → Assign Copilot/开发者'] },
+    { x: ML + 2 * (colW + 0.25), y: 1.7, w: colW, color: C.aqua, title: '架构师（Architect）', desc: '技术决策与质量保障', bullets: ['项目原则 → constitution Agent', '技术方案 → plan Agent', '数据建模 → data-model/contracts', '架构评审 → 关键 PR Review'] },
+    { x: ML + 1.0, y: 4.3, w: 4.9, color: C.navy, title: '开发人员（Developer）', desc: '代码实现与质量防线', bullets: ['任务实现 → 按 Task Issue 编码', 'AI 辅助 → implement Agent', '测试编写 → 围绕验收标准', '代码审查 → Review AI 生成的 PR'] },
+    { x: ML + 6.05, y: 4.3, w: 4.9, color: C.gold, title: '质量工程师（QA）', desc: '测试设计与验证闭环', bullets: ['测试计划 → testplan Agent', '测试执行 → 覆盖 AC 与回归', '质量反馈 → 缺陷进入 Issue 流转', '验收支持 → 输出验证结论'] },
   ];
 
   roles.forEach(r => {
     addCardWithBullets(s, {
-      x: r.x, y: r.y, w: cardW2, h: 2.4, band: r.color, fill: C.white,
+      x: r.x, y: r.y, w: r.w, h: 2.4, band: r.color, fill: C.white,
       title: r.title, desc: r.desc, bullets: r.bullets,
     });
   });
@@ -480,8 +487,8 @@ function addCardWithBullets(slide, cfg) {
   addHeader(s, '角色 × SDD 阶段职责矩阵', '用 RACI 明确谁负责执行、谁审批、谁咨询、谁被知会', false);
   addPill(s, 'RACI', 11.6, 0.46, C.coral, C.white, 0.75);
 
-  const headerOpts = { fill: { color: C.navy }, color: C.white, bold: true, align: 'center', fontSize: 12 };
-  const cellCenter = { align: 'center', fontSize: 12 };
+  const headerOpts = { fill: { color: C.navy }, color: C.white, bold: true, align: 'center', fontSize: 10.5 };
+  const cellCenter = { align: 'center', fontSize: 10 };
 
   // Color coding for RACI cells
   function raciCell(val) {
@@ -496,169 +503,141 @@ function addCardWithBullets(slide, cfg) {
       { text: '项目经理', options: headerOpts },
       { text: '架构师', options: headerOpts },
       { text: '开发人员', options: headerOpts },
+      { text: 'QA 工程师', options: headerOpts },
     ],
-    [{ text: 'Constitution', options: { bold: true, fontSize: 12 } }, raciCell('C'), raciCell('I'), raciCell('R'), raciCell('I')],
-    [{ text: 'Specify', options: { bold: true, fontSize: 12 } }, raciCell('R'), raciCell('I'), raciCell('C'), raciCell('I')],
-    [{ text: 'Clarify', options: { bold: true, fontSize: 12 } }, raciCell('R'), raciCell('C'), raciCell('C'), raciCell('C')],
-    [{ text: 'Plan', options: { bold: true, fontSize: 12 } }, raciCell('C'), raciCell('I'), raciCell('R'), raciCell('C')],
-    [{ text: 'Analyze', options: { bold: true, fontSize: 12 } }, raciCell('A'), raciCell('I'), raciCell('R'), raciCell('I')],
-    [{ text: 'Tasks', options: { bold: true, fontSize: 12 } }, raciCell('C'), raciCell('A'), raciCell('R'), raciCell('C')],
-    [{ text: 'Implement', options: { bold: true, fontSize: 12 } }, raciCell('I'), raciCell('C'), raciCell('C'), raciCell('R')],
-    [{ text: 'Verify', options: { bold: true, fontSize: 12 } }, raciCell('A'), raciCell('I'), raciCell('A'), raciCell('R')],
+    [{ text: 'Constitution', options: { bold: true, fontSize: 11 } }, raciCell('C'), raciCell('I'), raciCell('R'), raciCell('I'), raciCell('I')],
+    [{ text: 'Specify', options: { bold: true, fontSize: 11 } }, raciCell('R'), raciCell('I'), raciCell('C'), raciCell('I'), raciCell('I')],
+    [{ text: 'Clarify', options: { bold: true, fontSize: 11 } }, raciCell('R'), raciCell('C'), raciCell('C'), raciCell('C'), raciCell('I')],
+    [{ text: 'Plan', options: { bold: true, fontSize: 11 } }, raciCell('C'), raciCell('I'), raciCell('R'), raciCell('C'), raciCell('I')],
+    [{ text: 'Analyze', options: { bold: true, fontSize: 11 } }, raciCell('A'), raciCell('I'), raciCell('R'), raciCell('I'), raciCell('I')],
+    [{ text: 'Tasks', options: { bold: true, fontSize: 11 } }, raciCell('C'), raciCell('A'), raciCell('R'), raciCell('C'), raciCell('I')],
+    [{ text: 'Testplan', options: { bold: true, fontSize: 11 } }, raciCell('C'), raciCell('I'), raciCell('C'), raciCell('I'), raciCell('R')],
+    [{ text: 'Implement', options: { bold: true, fontSize: 11 } }, raciCell('I'), raciCell('C'), raciCell('C'), raciCell('R'), raciCell('I')],
+    [{ text: 'Review', options: { bold: true, fontSize: 11 } }, raciCell('A'), raciCell('I'), raciCell('A'), raciCell('R'), raciCell('C')],
+    [{ text: 'Verify', options: { bold: true, fontSize: 11 } }, raciCell('A'), raciCell('I'), raciCell('A'), raciCell('R'), raciCell('R')],
   ], {
-    x: ML, y: 1.72, w: 8.0, h: 4.6,
-    colW: [1.8, 1.55, 1.55, 1.55, 1.55],
+    x: ML, y: 1.72, w: 8.5, h: 4.8,
+    colW: [1.55, 1.35, 1.35, 1.35, 1.35, 1.35],
     border: { pt: 1, color: C.line },
-    fontFace: BODY_FONT, fontSize: 12, color: C.ink,
+    fontFace: BODY_FONT, fontSize: 10, color: C.ink,
     margin: 0.04, valign: 'middle',
   });
 
   // Legend cards on the right
-  addCard(s, { x: 9.1, y: 1.72, w: 3.5, h: 1.5, band: C.teal, fill: C.white, title: 'RACI 说明', body: 'R = Responsible 执行\nA = Accountable 审批\nC = Consulted 咨询\nI = Informed 知会' });
-  addCard(s, { x: 9.1, y: 3.45, w: 3.5, h: 1.3, band: C.coral, fill: C.white, title: '管理含义', body: '需求由产品负责\n方案由架构负责\n执行由开发负责\n节奏由项目经理推动' });
-  addCard(s, { x: 9.1, y: 5.0, w: 3.5, h: 1.2, band: C.aqua, fill: C.white, title: '落地建议', body: '将角色映射到 Agent 和 GitHub 权限，避免"人人都能做，最终没人负责"。' });
+  addCard(s, { x: 9.35, y: 1.72, w: 3.25, h: 1.5, band: C.teal, fill: C.white, title: 'RACI 说明', body: 'R = Responsible 执行\nA = Accountable 审批\nC = Consulted 咨询\nI = Informed 知会' });
+  addCard(s, { x: 9.35, y: 3.45, w: 3.25, h: 1.35, band: C.coral, fill: C.white, title: '管理含义', body: '需求由 PM 负责\n方案由架构负责\n执行由开发主导\n验证由 QA 协同' });
+  addCard(s, { x: 9.35, y: 5.05, w: 3.25, h: 1.15, band: C.aqua, fill: C.white, title: '落地建议', body: '将角色映射到 Agent 与仓库权限，避免职责重叠与责任空白。' });
 
   addFooter(s, 7);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 8 — Upstream Agents
+//  SLIDE 8 — SDD Agent System
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
-  addHeader(s, '核心 Agent 设计（上游）', '前 3 个 Agent 负责把模糊需求转成结构化规范与技术方案', false);
-  addPill(s, 'Agents 1/2', 10.8, 0.46, C.aqua, C.navy, 1.4);
+  addHeader(s, 'SDD Agent 体系', '按阶段组合 Agent，不固定数量；根据企业场景灵活增删', false);
+  addPill(s, 'Agents', 11.0, 0.46, C.coral, C.white, 1.05);
 
   const colW = (CONTENT_W - 0.5) / 3;
-  const agents = [
-    {
-      color: C.teal, fill: C.lightTeal, title: 'speckit-constitution',
-      desc: '角色：项目原则制定者\n输入：现有代码库与团队约束\n输出：constitution.md + copilot-instructions.md',
-      bullets: ['定义编码、测试、架构准则', '沉淀为仓库可执行规则', '控制 AI 生成的边界'],
-    },
-    {
-      color: C.coral, fill: C.lightCoral, title: 'speckit-specify',
-      desc: '角色：需求规格生成器\n输入：自然语言需求\n输出：spec.md + Epic/Story Issues',
-      bullets: ['自动识别用户故事', '生成验收标准与 clarifications', '直接落地到 GitHub Issues'],
-    },
-    {
-      color: C.aqua, fill: C.lightAqua, title: 'speckit-plan',
-      desc: '角色：技术方案规划师\n输入：spec.md + constitution.md\n输出：plan.md、data-model、contracts/',
-      bullets: ['输出技术决策和约束', '创建 Milestone 与 Project', '为任务拆解提供上下文'],
-    },
+  const rowH = 1.58;
+  const agentCards = [
+    { title: 'constitution', color: C.teal, fill: C.lightTeal, desc: '项目原则\n输出 constitution.md' },
+    { title: 'specify/prd', color: C.coral, fill: C.lightCoral, desc: '需求定义\n输出 prd.md/spec.md' },
+    { title: 'clarify', color: C.aqua, fill: C.lightAqua, desc: '需求澄清\n更新需求文档' },
+    { title: 'plan', color: C.navy, fill: C.lightNavy, desc: '技术方案\n输出 plan.md/contracts' },
+    { title: 'analyze（可选）', color: C.gold, fill: C.cream, desc: '只读一致性分析\n不直接写入产物' },
+    { title: 'tasks', color: C.coral, fill: C.lightCoral, desc: '任务拆解\n输出 tasks.md + issues' },
+    { title: 'testplan', color: C.teal, fill: C.lightTeal, desc: '测试计划\n输出 testplan.md' },
+    { title: 'implement', color: C.navy, fill: C.lightNavy, desc: '代码实现\n输出 PR + 状态更新' },
+    { title: 'review', color: C.aqua, fill: C.lightAqua, desc: '代码审查\n输出审查结论' },
   ];
 
-  agents.forEach((a, i) => {
-    addCardWithBullets(s, {
-      x: ML + i * (colW + 0.25), y: 1.7, w: colW, h: 4.8,
-      band: a.color, fill: a.fill, title: a.title, desc: a.desc, bullets: a.bullets,
-    });
+  agentCards.forEach((a, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const x = ML + col * (colW + 0.25);
+    const y = 1.72 + row * (rowH + 0.18);
+    addCard(s, { x, y, w: colW, h: rowH, band: a.color, fill: a.fill, title: a.title, body: a.desc });
+  });
+
+  addCard(s, {
+    x: ML, y: 6.68 - 0.7, w: CONTENT_W, h: 0.65, band: C.navy, fill: C.lightNavy,
+    title: '说明',
+    body: '本页给出统一能力地图：可采用 speckit-* 命名或角色动作命名，关键是输入输出与门控一致。',
   });
 
   addFooter(s, 8);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 9 — Downstream Agents
+//  SLIDE 9 — SDD Mapping
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
-  addHeader(s, '核心 Agent 设计（下游）', '后 3 个 Agent 负责把技术方案变成可执行任务，驱动 Coding Agent 进入交付', false);
-  addPill(s, 'Agents 2/2', 10.8, 0.46, C.coral, C.white, 1.4);
+  addHeader(s, 'SDD 产物 × GitHub 对象映射', '与 v2 统一：文档驱动，GitHub 执行；需求、方案、任务、验证全链路可追踪', false);
+  addPill(s, 'Mapping', 11.2, 0.46, C.teal, C.white, 1.05);
 
-  const colW = (CONTENT_W - 0.5) / 3;
-  const agents = [
-    {
-      color: C.aqua, fill: C.lightAqua, title: 'speckit-tasks',
-      desc: '角色：任务拆解器\n输入：plan.md + contracts + data-model\n输出：tasks.md + Task Issues',
-      bullets: ['识别依赖与并行标记', '生成 copilot-eligible 标签', 'Issue body 注入实现上下文'],
-    },
-    {
-      color: C.navy, fill: C.lightNavy, title: 'speckit-implement',
-      desc: '角色：实现执行器\n输入：tasks.md + spec / plan / constitution\n输出：代码 PR + 测试 + Issue 更新',
-      bullets: ['按照任务顺序执行实现', '自动更新 Task Issue 状态', '围绕验收标准生成代码'],
-    },
-    {
-      color: C.coral, fill: C.lightCoral, title: 'speckit-orchestrator',
-      desc: '角色：流程编排器\n输入：需求描述或阶段入口\n输出：串联各 Agent 执行路径',
-      bullets: ['适合阶段编排和门控', '成熟后可叠加 Actions 调度', '一键启动完整 SDD 流程'],
-    },
-  ];
+  const thOpts = { fill: { color: C.navy }, color: C.white, bold: true, align: 'center', fontSize: 11 };
+  const tdOpts = { fontSize: 10.5 };
 
-  agents.forEach((a, i) => {
-    addCardWithBullets(s, {
-      x: ML + i * (colW + 0.25), y: 1.7, w: colW, h: 4.8,
-      band: a.color, fill: a.fill, title: a.title, desc: a.desc, bullets: a.bullets,
-    });
+  s.addTable([
+    [{ text: 'SDD 阶段 / Agent', options: thOpts }, { text: '文档产物', options: thOpts }, { text: 'GitHub 对象与规则', options: thOpts }],
+    [{ text: 'specify/prd', options: tdOpts }, 'prd.md / spec.md', '同步 Epic + Story Issues；验收标准转为 checklist'],
+    [{ text: 'clarify', options: tdOpts }, '更新 prd.md / spec.md', '针对不明确项创建或更新 needs-clarification Issue'],
+    [{ text: 'plan', options: tdOpts }, 'plan.md + contracts + data-model', '创建/更新 Milestone 与 Project 卡片'],
+    [{ text: 'tasks', options: tdOpts }, 'tasks.md', '批量创建 Task Issues，标记优先级/并行/依赖并进入 Board'],
+    [{ text: 'testplan', options: tdOpts }, 'testplan.md', '在 Project 中追踪测试覆盖与验证状态'],
+    [{ text: 'implement', options: tdOpts }, '代码与测试变更', '创建 PR，回写 Issue 状态并关联 Milestone'],
+  ], {
+    x: ML, y: 1.72, w: CONTENT_W, h: 3.8,
+    colW: [2.1, 2.5, CONTENT_W - 4.6],
+    border: { pt: 1, color: C.line },
+    fontFace: BODY_FONT, fontSize: 10.5, color: C.ink,
+    margin: [0.04, 0.08, 0.04, 0.08], valign: 'middle',
+    autoPage: false,
+  });
+
+  const bw = (CONTENT_W - 0.3) / 2;
+  addCard(s, {
+    x: ML, y: 5.74, w: bw, h: 0.82, band: C.coral, fill: C.lightCoral,
+    title: '关键幂等策略',
+    body: 'Issue body 写入唯一元数据（feature/task 标识），重复同步仅更新不重复创建。',
+  });
+  addCard(s, {
+    x: ML + bw + 0.3, y: 5.74, w: bw, h: 0.82, band: C.aqua, fill: C.lightAqua,
+    title: '对交付质量的价值',
+    body: 'Task Issue 携带 prd/plan/contracts/testplan 上下文，提升 AI 实现和 Review 质量。',
   });
 
   addFooter(s, 9);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 10 — Mapping Rules
+//  SLIDE 10 — End-to-End Workflow
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
-  addHeader(s, 'GitHub 对象映射规则', '每份产物都能落到 GitHub 的一个可执行对象', false);
-  addPill(s, 'Mapping', 11.2, 0.46, C.teal, C.white, 1.05);
-
-  const thOpts = { fill: { color: C.navy }, color: C.white, bold: true, align: 'center', fontSize: 11 };
-  const tdOpts = { fontSize: 11 };
-
-  s.addTable([
-    [{ text: 'Spec / Tasks 元素', options: thOpts }, { text: 'GitHub 实体', options: thOpts }, { text: '落地规则', options: thOpts }],
-    [{ text: 'Feature Title', options: tdOpts }, 'Epic Issue', '[Spec] Feature NNN: <name>'],
-    [{ text: 'User Stories', options: tdOpts }, 'Story Issues', '每个 "As a..." 一个 Issue'],
-    [{ text: 'Acceptance Criteria', options: tdOpts }, 'Issue Task List', '转换为 - [ ] checklist'],
-    [{ text: '[NEEDS CLARIFICATION]', options: tdOpts }, 'Clarification Issue', '打 needs-clarification label'],
-    [{ text: 'tasks.md Task', options: tdOpts }, 'Task Issue', '每条任务一个 Issue'],
-    [{ text: '[P] 并行标记', options: tdOpts }, 'Label', '打 parallel-ready label'],
-    [{ text: 'Phase 分组', options: tdOpts }, 'Label / Project 字段', 'phase-N / SDD Phase'],
-    [{ text: 'plan.md', options: tdOpts }, 'Milestone / Project', '版本、阶段、技术摘要'],
-  ], {
-    x: ML, y: 1.72, w: CONTENT_W, h: 3.6,
-    colW: [2.5, 2.3, CONTENT_W - 4.8],
-    border: { pt: 1, color: C.line },
-    fontFace: BODY_FONT, fontSize: 11, color: C.ink,
-    margin: [0.04, 0.1, 0.04, 0.1], valign: 'middle',
-    autoPage: false,
-  });
-
-  // Two bottom cards
-  const bw = (CONTENT_W - 0.3) / 2;
-  addCard(s, { x: ML, y: 5.6, w: bw, h: 0.9, band: C.coral, fill: C.lightCoral, title: '关键幂等策略', body: 'Issue body 写入 <!-- spec-kit:feature-NNN:task-M --> 元数据，避免多次同步重复创建。' });
-  addCard(s, { x: ML + bw + 0.3, y: 5.6, w: bw, h: 0.9, band: C.aqua, fill: C.lightAqua, title: '对 Coding Agent 的价值', body: '每个 Task Issue 天然携带 spec / plan / contracts 上下文，提升生成质量。' });
-
-  addFooter(s, 10);
-}
-
-// ════════════════════════════════════════════════════════════════
-//  SLIDE 11 — End-to-End Workflow (simplified to 4 stages, 2 rows)
-// ════════════════════════════════════════════════════════════════
-{
-  const s = pptx.addSlide();
-  addHeader(s, '端到端工作流示例', '从需求提出到交付的完整过程，说明人、Agent、GitHub 三者如何协作', false);
+  addHeader(s, '端到端工作流示例', '扩展 QA 闭环：测试计划并行生成，验证前置；不显式依赖 bug-report agent', false);
   addPill(s, 'Workflow', 11.0, 0.46, C.aqua, C.navy, 1.25);
 
-  // Use 2 rows of steps to avoid cramming
   const steps = [
-    { num: '1', title: '需求输入', body: 'PM 在 Agent Tab 选择 speckit-specify，输入业务需求描述', color: C.coral },
-    { num: '2', title: '生成 Spec', body: '输出 spec.md + Epic/Story Issues，发起 PR 供团队评审', color: C.teal },
-    { num: '3', title: '方案设计', body: '架构师运行 speckit-plan，补齐 plan / data-model / contracts', color: C.aqua },
-    { num: '4', title: '任务拆解', body: 'speckit-tasks 生成 tasks.md 并批量创建 Task Issues', color: C.navy },
+    { num: '1', title: '需求输入', body: 'PM 通过 specify/prd Agent 输入业务需求', color: C.coral },
+    { num: '2', title: '生成需求', body: '产出 prd/spec 并同步 Epic/Story Issues', color: C.teal },
+    { num: '3', title: '方案设计', body: '架构师运行 plan，补齐 contracts/data-model', color: C.aqua },
+    { num: '4', title: '任务拆解', body: 'tasks 生成 tasks.md 并创建 Task Issues', color: C.navy },
   ];
   const steps2 = [
-    { num: '5', title: '指派实现', body: '项目经理把 copilot-eligible 任务 assign 给 Copilot Agent', color: C.coral },
-    { num: '6', title: '自动 PR', body: 'speckit-implement 执行实现，生成代码和测试 PR', color: C.teal },
-    { num: '7', title: '验收关闭', body: '产品/架构/开发 Review，Merge 后自动关闭 Task Issue', color: C.aqua },
+    { num: '5', title: '测试计划', body: 'QA 并行生成 testplan.md 并关联验收标准', color: C.gold },
+    { num: '6', title: '指派实现', body: 'PMO 将可执行任务 assign 给 Copilot/开发者', color: C.coral },
+    { num: '7', title: '自动 PR', body: 'implement 生成代码与测试 PR 并回写状态', color: C.teal },
+    { num: '8', title: 'QA 验证', body: '按 testplan 验证后进入 Review 与合并', color: C.aqua },
   ];
 
   function drawStepRow(items, baseY, slide) {
     const stepW = (CONTENT_W - (items.length - 1) * 0.3) / items.length;
     items.forEach((step, i) => {
       const sx = ML + i * (stepW + 0.3);
-      // Number circle
       slide.addShape(pptx.ShapeType.ellipse, {
         x: sx + stepW / 2 - 0.2, y: baseY, w: 0.4, h: 0.4,
         fill: { color: step.color },
@@ -667,17 +646,14 @@ function addCardWithBullets(slide, cfg) {
         x: sx + stepW / 2 - 0.2, y: baseY, w: 0.4, h: 0.4,
         fontFace: BODY_FONT, fontSize: 14, bold: true, color: C.white, align: 'center', valign: 'middle', margin: 0,
       });
-      // Title
       slide.addText(step.title, {
         x: sx, y: baseY + 0.5, w: stepW, h: 0.3,
-        fontFace: TITLE_FONT, fontSize: 12, bold: true, color: C.ink, align: 'center', margin: 0,
+        fontFace: TITLE_FONT, fontSize: 11, bold: true, color: C.ink, align: 'center', margin: 0,
       });
-      // Body
       slide.addText(step.body, {
         x: sx + 0.1, y: baseY + 0.85, w: stepW - 0.2, h: 0.7,
-        fontFace: BODY_FONT, fontSize: 10, color: C.slate, align: 'center', margin: 0, valign: 'top',
+        fontFace: BODY_FONT, fontSize: 9.2, color: C.slate, align: 'center', margin: 0, valign: 'top', lineSpacingMultiple: 1.1,
       });
-      // Arrow
       if (i < items.length - 1) {
         slide.addText('→', {
           x: sx + stepW, y: baseY + 0.1, w: 0.3, h: 0.3,
@@ -688,25 +664,23 @@ function addCardWithBullets(slide, cfg) {
   }
 
   drawStepRow(steps, 1.8, s);
-  // Down arrow between rows
   s.addText('↓', {
     x: ML + CONTENT_W / 2 - 0.15, y: 3.45, w: 0.3, h: 0.35,
     fontFace: BODY_FONT, fontSize: 20, color: C.gold, align: 'center', valign: 'middle', margin: 0,
   });
   drawStepRow(steps2, 3.9, s);
 
-  // Summary
   addCard(s, {
     x: ML, y: 5.7, w: CONTENT_W, h: 0.8, band: C.navy, fill: C.lightNavy,
     title: '核心闭环',
-    body: '需求不是在文档里结束，而是在 Issue / Task / PR 链路中被逐步验证，最终由验收标准回收。',
+    body: '需求不止停留在文档，而是在 Issue / Task / PR 链路持续验证，最终由 QA 与验收标准共同回收。',
   });
 
-  addFooter(s, 11);
+  addFooter(s, 10);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 12 — Roadmap
+//  SLIDE 11 — Roadmap
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
@@ -714,8 +688,8 @@ function addCardWithBullets(slide, cfg) {
   addPill(s, 'Roadmap', 11.0, 0.46, C.coral, C.white, 1.25);
 
   const phases = [
-    { title: 'Phase 1', sub: 'Custom Agent 定义', body: '定义 6 个 .agent.md\n完成核心 prompt 设计', color: C.coral },
-    { title: 'Phase 2', sub: 'Spec Kit Extension', body: '实现 /speckit.gh-sync\nspec → GitHub 同步', color: C.teal },
+    { title: 'Phase 1', sub: 'Agent 设计与门控', body: '定义核心 .agent.md\n完成 prompt 与人工门控规则', color: C.coral },
+    { title: 'Phase 2', sub: 'SDD 产物落地', body: '规范 prd/plan/tasks/testplan\n打通文档与仓库结构', color: C.teal },
     { title: 'Phase 3', sub: 'Actions 自动化', body: 'spec 变更同步\nTask 自动 assign\nPR 自动关单', color: C.aqua },
     { title: 'Phase 4', sub: 'Projects 模板', body: '构建 Board/Table 视图\n字段规范化', color: C.navy },
     { title: 'Phase 5', sub: '验证与推广', body: '试点运行\n幂等验证\n文档沉淀与推广', color: C.gold },
@@ -766,14 +740,14 @@ function addCardWithBullets(slide, cfg) {
   addCard(s, {
     x: ML, y: 5.6, w: CONTENT_W, h: 0.9, band: C.coral, fill: C.lightCoral,
     title: '优先级建议',
-    body: '先做路径 B：仅需 .agent.md + prompt 工程即可验证核心价值；路径 A 与 Actions 作为增量增强。',
+    body: '先做路径 B：优先验证 SDD 在 GitHub 的闭环价值；路径 A 与 Actions 作为增量增强。',
   });
 
-  addFooter(s, 12);
+  addFooter(s, 11);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 13 — Validation & Risks
+//  SLIDE 12 — Validation & Risks
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
@@ -785,12 +759,13 @@ function addCardWithBullets(slide, cfg) {
   addCardWithBullets(s, {
     x: ML, y: 1.7, w: colW, h: 3.8, band: C.aqua, fill: C.lightAqua,
     title: '验证方案',
-    desc: '建议在测试仓库按最短路径完成 4 类验证：',
+    desc: '建议在测试仓库按最短路径完成 5 类验证：',
     bullets: [
       'Custom Agent 验证：specify / plan / tasks / implement 依次跑通',
       'CLI 同步验证：/speckit.gh-sync 正确创建或更新对象',
       '幂等验证：多次同步不重复创建 Issue',
       '混合模式验证：A 生成 spec，B 读取并创建 tasks 与 PR',
+      'QA 验证：testplan 与验收标准覆盖矩阵一致',
     ],
   });
 
@@ -799,10 +774,10 @@ function addCardWithBullets(slide, cfg) {
     title: '关键风险与限制',
     desc: '需要关注的技术与流程风险：',
     bullets: [
-      'GitHub.com 当前不完整支持 Agent handoffs',
       'github/* 写权限依赖仓库配置',
       '双向同步先不做，避免复杂度过早上升',
       '跨仓库协同与 Packages/Releases 暂不纳入一期',
+      '流程门控执行不到位会导致批量写入风险',
     ],
   });
 
@@ -810,14 +785,14 @@ function addCardWithBullets(slide, cfg) {
   addCard(s, {
     x: ML, y: 5.8, w: CONTENT_W, h: 0.8, band: C.navy, fill: C.lightNavy,
     title: '判断标准',
-    body: '试点成功的标志不是"生成了文档"，而是"一个 Feature 可以从 spec 一路追踪到 Task 和 PR，并被团队稳定复用"。',
+    body: '试点成功不是“生成了文档”，而是“一个 Feature 可从 prd/spec 追踪到 Task 与 PR，并被团队稳定复用”。',
   });
 
-  addFooter(s, 13);
+  addFooter(s, 12);
 }
 
 // ════════════════════════════════════════════════════════════════
-//  SLIDE 14 — Benefits & Next Steps
+//  SLIDE 13 — Benefits & Next Steps
 // ════════════════════════════════════════════════════════════════
 {
   const s = pptx.addSlide();
@@ -845,7 +820,7 @@ function addCardWithBullets(slide, cfg) {
     title: '建议决策',
     bullets: [
       '先在单一试点仓库实现路径 B',
-      '优先落地 specify / plan / tasks / implement 四个核心 Agent',
+      '优先落地 specify/prd / plan / tasks / testplan / implement',
       '路径 A 与 Actions 自动化作为二期增强',
     ],
   });
@@ -874,10 +849,10 @@ function addCardWithBullets(slide, cfg) {
     color: C.white, align: 'center', valign: 'middle', margin: 0,
   });
 
-  addFooter(s, 14, '建议启动试点', true);
+  addFooter(s, 13, '建议启动试点', true);
 }
 
 // ── Write file ─────────────────────────────────────────────────
-pptx.writeFile({ fileName: '/Users/qifenghou/Codes/Wanke/SpecKit-GitHub-Platform-Design-Deck-v2.pptx' })
+pptx.writeFile({ fileName: 'e:/公司/6伊登/26年3月/github-ai-solution/v3/SpecKit-GitHub-Platform-Design-Deck-v3-optimized.pptx' })
   .then(() => console.log('✅ PPT generated successfully'))
   .catch(err => console.error('❌ Error:', err));
